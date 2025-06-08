@@ -133,41 +133,43 @@ void main() async {
 
 
 
-
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ChatService {
-  // Paste your Gemini API key here
   static const String _apiKey = 'AIzaSyDifXXq0Oa72zKaAB15vb2E0mmN5F9PhyM';
 
-  // Updated Gemini v1beta flash endpoint
-  static const String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  static const String _textModelUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$_apiKey';
 
+  static const String _visionModelUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=$_apiKey';
+
+  /// Sends a text-only message to Gemini 2.0 Flash
   static Future<String> sendMessage(String userInput) async {
-    final Uri url = Uri.parse('$_baseUrl?key=$_apiKey');
-
-    final Map<String, dynamic> body = {
+    final Uri url = Uri.parse(_textModelUrl);
+    final String requestBody = jsonEncode({
       'contents': [
         {
           'parts': [
             {'text': userInput}
           ]
         }
-      ]
-    };
+      ],
+    });
 
     try {
-      final response = await http.post(
+      final http.Response response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+        body: requestBody,
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final String? text =
+            data['candidates']?[0]?['content']?['parts']?[0]?['text'];
         return text ?? 'No response from Gemini.';
       } else {
         print('Gemini API error: ${response.statusCode} - ${response.body}');
@@ -178,12 +180,48 @@ class ChatService {
       return 'Error sending request: $e';
     }
   }
-}
 
-// Optional: Run this in DartPad or Flutter console to test it standalone
-void main() async {
-  String prompt = "Write a short poem about stars.";
-  String reply = await ChatService.sendMessage(prompt);
-  print("Gemini Reply:\n$reply");
+  /// Sends an image + optional prompt to Gemini Pro Vision
+  static Future<String> sendImageMessage(Uint8List imageBytes,
+      {String prompt = "Describe the image"}) async {
+    final String base64Image = base64Encode(imageBytes);
+
+    final Map<String, dynamic> requestBody = {
+      "contents": [
+        {
+          "parts": [
+            {
+              "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": base64Image,
+              }
+            },
+            {"text": prompt}
+          ]
+        }
+      ]
+    };
+
+    try {
+      final http.Response response = await http.post(
+        Uri.parse(_visionModelUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final String? text =
+            data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        return text ?? "No response from Gemini.";
+      } else {
+        print('Gemini Vision API error: ${response.statusCode} - ${response.body}');
+        return 'Gemini Vision API error: ${response.statusCode}';
+      }
+    } catch (e) {
+      print('Error sending image request to Gemini API: $e');
+      return 'Error sending image request: $e';
+    }
+  }
 }
 
