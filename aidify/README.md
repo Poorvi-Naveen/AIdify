@@ -1,6 +1,8 @@
 # Aidify
 ## Simplifying First Aid
 ![alt text](assets/images/logo_image2.png)
+
+
 **Aidify** is a Flutter-based mobile application designed to offer quick, reliable, and accessible first aid guidance. Whether it's burns, fractures, allergies, or CPR, Aidify helps users take immediate and informed action during emergencies.
 ---
 ## Features
@@ -27,27 +29,27 @@
 
 ## Tech Stack
  - **Flutter** for frontend UI
-- **Firebase Authentication** for user login/signup
-- **Cloud Firestore** for user data and topic management
+ - **Firebase Authentication** for user login/signup
+ - **Cloud Firestore** for user data and topic management
 
 ## Project Structure
-lib/
-├── main.dart
-├── splash_screen.dart
-├── login_screen.dart
-├── signup_screen.dart
-├── home_screen.dart
-├── bookmarks_screen.dart
-├── chatbot_screen.dart
-├── emergency_screen.dart
-├── profile_screen.dart
-├── topic_detail_screen.dart
-├── models/
-│ └── first_aid_topic.dart
-├── data/
-│ └── topics.json
-└── widgets/
-└── topic_card.dart
+```lib/
+```├── main.dart
+```├── splash_screen.dart
+```├── login_screen.dart
+```├── signup_screen.dart
+```├── home_screen.dart
+```├── bookmarks_screen.dart
+```├── chatbot_screen.dart
+```├── emergency_screen.dart
+```├── profile_screen.dart
+```├── topic_detail_screen.dart
+```├── models/
+```│ └── first_aid_topic.dart
+```├── data/
+```│ └── topics.json
+```└── widgets/
+```└── topic_card.dart
 
 ## Firebase Configuration
 To use Firebase in your app:
@@ -62,11 +64,11 @@ To use Firebase in your app:
    ```bash
    git clone https://github.com/Poorvi-Naveen/Aidify.git
 - Navigate to the project: 
-   cd Aidify
+   ```cd Aidify
 - Get dependencies:
-   flutter pub get
+   ```flutter pub get
 - Run the app:
-   flutter run
+   ```flutter run
 
 ## Contributions
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
