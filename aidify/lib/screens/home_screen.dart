@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => EmergencyContactsApp()),
+                        MaterialPageRoute(builder: (context) => EmergencyContactsPage()),
                       );
                     },
                     child: Icon(Icons.phone, color: Colors.white),

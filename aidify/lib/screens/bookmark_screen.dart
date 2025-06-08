@@ -5,6 +5,7 @@ import 'package:aidify/screens/profile_screen.dart';
 import 'package:aidify/screens/home_screen.dart';
 import 'package:aidify/screens/chat_screen.dart';
 import 'package:aidify/screens/call_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class BookmarksPage extends StatefulWidget {
   const BookmarksPage({Key? key}) : super(key: key);
@@ -69,11 +70,16 @@ class _BookmarksPageState extends State<BookmarksPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage(userId: '',)),
-              );
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: user.uid),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -183,7 +189,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const EmergencyContactsApp()),
+                  MaterialPageRoute(builder: (context) => const EmergencyContactsPage()),
                 );
               },
             ),

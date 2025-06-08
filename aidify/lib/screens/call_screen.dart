@@ -1,158 +1,250 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../screens/home_screen.dart';
+import '../screens/bookmark_screen.dart';
+import '../screens/message_screen.dart';
+import '../screens/call_screen.dart';
+import '../screens/profile_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
-  runApp(const EmergencyContactsApp());
+class EmergencyContact {
+  final String name;
+  final String phone;
+
+  EmergencyContact({required this.name, required this.phone});
+
+  factory EmergencyContact.fromJson(Map<String, dynamic> json) {
+    return EmergencyContact(
+      name: json['name'],
+      phone: json['phone'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'phone': phone,
+  };
 }
 
-class EmergencyContactsApp extends StatelessWidget {
-  const EmergencyContactsApp({super.key});
+class EmergencyContactsPage extends StatefulWidget {
+  const EmergencyContactsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Emergency Contacts',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: const EmergencyContactsScreen(),
-    );
+  State<EmergencyContactsPage> createState() => _EmergencyContactsPageState();
+}
+
+class _EmergencyContactsPageState extends State<EmergencyContactsPage> {
+  List<EmergencyContact> contacts = [];
+
+
+  @override
+void initState() {
+  super.initState();
+  _loadEmergencyContacts();
+}
+
+Future<void> _loadEmergencyContacts() async {
+  final prefs = await SharedPreferences.getInstance();
+  final List<String>? savedContacts = prefs.getStringList('emergencyContacts');
+
+  if (savedContacts != null) {
+    setState(() {
+      contacts = savedContacts.map((jsonString) {
+        final data = jsonDecode(jsonString);
+        return EmergencyContact.fromJson(data);
+      }).toList();
+    });
   }
 }
 
-class EmergencyContactsScreen extends StatefulWidget {
-  const EmergencyContactsScreen({super.key});
 
-  @override
-  State<EmergencyContactsScreen> createState() => _EmergencyContactsScreenState();
-}
+Future<void> _pickContactAndSave() async {
+  if (await Permission.contacts.request().isGranted) {
+    final Contact? contact = await FlutterContacts.openExternalPick();
+    if (contact != null && contact.phones.isNotEmpty) {
+      final phone = contact.phones.first.number;
+      final name = contact.displayName;
 
-class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
-  List<EmergencyContact> contacts = [
-    EmergencyContact(name: 'Universal Emergency', number: '112'),
-    EmergencyContact(name: 'MOM', number: ''), // Add actual number
-    EmergencyContact(name: 'DAD', number: ''), // Add actual number
-  ];
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedContacts = prefs.getStringList('emergencyContacts') ?? [];
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController numberController = TextEditingController();
+      final newContact = EmergencyContact(name: name, phone: phone);
+      savedContacts.add(jsonEncode(newContact.toJson()));
+      await prefs.setStringList('emergencyContacts', savedContacts);
 
-  Future<void> makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      throw 'Could not launch $phoneNumber';
+      setState(() {
+        contacts.add(newContact);
+      });
     }
+  } else {
+    openAppSettings();
   }
+}
 
-  void _addNewContact() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Emergency Contact'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Contact Name',
-                  hintText: 'e.g., Doctor',
-                ),
-              ),
-              TextField(
-                controller: numberController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  hintText: 'e.g., +1234567890',
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty && numberController.text.isNotEmpty) {
-                  setState(() {
-                    contacts.add(EmergencyContact(
-                      name: nameController.text,
-                      number: numberController.text,
-                    ));
-                    nameController.clear();
-                    numberController.clear();
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
+
+  void _makeCall(String number) async {
+    if (await Permission.phone.request().isGranted) {
+      final Uri callUri = Uri(scheme: 'tel', path: number);
+      if (await canLaunchUrl(callUri)) {
+        await launchUrl(callUri);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch dialer')),
         );
-      },
-    );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Phone permission is required to make a call'),
+        ),
+      );
+      openAppSettings();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFCEAEA),
       appBar: AppBar(
-        title: const Text('Emergency Contacts'),
+        backgroundColor: const Color(0xFFF6E2E2),
+        leading: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Image.asset('assets/images/logo_image1.png'),
+        ),
+        title: const Text(
+          'Emergency Contacts',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addNewContact,
+            icon: const Icon(Icons.person_outline, color: Colors.black),
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: user.uid),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          final contact = contacts[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              title: Text(
-                contact.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search contacts...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
-              subtitle: contact.number.isNotEmpty
-                  ? Text(contact.number)
-                  : const Text('Number not set', style: TextStyle(color: Colors.red)),
-              trailing: IconButton(
-                icon: const Icon(Icons.call, color: Colors.red),
-                onPressed: contact.number.isNotEmpty
-                    ? () => makePhoneCall(contact.number)
-                    : null,
-              ),
-              onTap: contact.number.isNotEmpty
-                  ? () => makePhoneCall(contact.number)
-                  : null,
             ),
-          );
-        },
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            color: Colors.red,
+            child: ListTile(
+              leading: const Icon(Icons.call, color: Colors.white),
+              title: const Text(
+                'EMERGENCY CONTACT\n112',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () => _makeCall('112'),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Emergency Contacts',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: contacts.length,
+              itemBuilder: (context, index) {
+                final contact = contacts[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: ListTile(
+                    title: Text(contact.name),
+                    trailing: IconButton(
+                            icon: const Icon(Icons.call),
+                            onPressed: () => _makeCall(contact.phone),
+                          )
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        height: 60,
+        color: const Color.fromRGBO(229, 57, 53, 0.99),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.bookmark, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BookmarksPage()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.message, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MessageScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.phone, color: Colors.white),
+              onPressed: () {
+                // Already on EmergencyContactsPage, so do nothing or maybe scroll to top
+              },
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewContact,
         backgroundColor: Colors.red,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.person_add),
+        onPressed: _pickContactAndSave,
       ),
     );
   }
-}
-
-class EmergencyContact {
-  final String name;
-  final String number;
-
-  EmergencyContact({required this.name, required this.number});
 }

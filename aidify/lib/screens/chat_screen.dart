@@ -58,11 +58,16 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              );
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: user.uid),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -170,11 +175,16 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage(userId: '',)),
-              );
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: user.uid),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -261,6 +271,7 @@ import '../screens/home_screen.dart';
 import '../screens/bookmark_screen.dart';
 import '../screens/message_screen.dart';
 import '../screens/call_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -342,11 +353,16 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage(userId: '')),
-              );
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: user.uid),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -399,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> {
             IconButton(
               icon: const Icon(Icons.phone, color: Colors.white),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const EmergencyContactsApp()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const EmergencyContactsPage()));
               },
             ),
           ],
