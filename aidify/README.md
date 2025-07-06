@@ -33,7 +33,9 @@
  - **Cloud Firestore** for user data and topic management
 
 ## Project Structure
-```lib/
+<pre>
+```bash
+lib/
 ├── main.dart
 ├── splash_screen.dart
 ├── login_screen.dart
@@ -50,7 +52,7 @@
 │ └── topics.json
 └── widgets/
 └── topic_card.dart
---- 
+</pre> 
 ## Firebase Configuration
 To use Firebase in your app:
 
@@ -64,11 +66,14 @@ To use Firebase in your app:
    ```bash
    git clone https://github.com/Poorvi-Naveen/Aidify.git
 - Navigate to the project: 
-   ```cd Aidify
+   ```bash
+   cd Aidify
 - Get dependencies:
-   ```flutter pub get
+   ```bash
+   flutter pub get
 - Run the app:
-   ```flutter run
+   ```bash
+   flutter run
 
 ## Contributions
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
