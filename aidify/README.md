@@ -34,7 +34,6 @@
 
 ## Project Structure
 <pre>
-```bash
 lib/
 ├── main.dart
 ├── splash_screen.dart
