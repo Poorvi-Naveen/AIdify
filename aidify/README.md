@@ -34,23 +34,23 @@
 
 ## Project Structure
 ```lib/
-```├── main.dart
-```├── splash_screen.dart
-```├── login_screen.dart
-```├── signup_screen.dart
-```├── home_screen.dart
-```├── bookmarks_screen.dart
-```├── chatbot_screen.dart
-```├── emergency_screen.dart
-```├── profile_screen.dart
-```├── topic_detail_screen.dart
-```├── models/
-```│ └── first_aid_topic.dart
-```├── data/
-```│ └── topics.json
-```└── widgets/
-```└── topic_card.dart
-
+├── main.dart
+├── splash_screen.dart
+├── login_screen.dart
+├── signup_screen.dart
+├── home_screen.dart
+├── bookmarks_screen.dart
+├── chatbot_screen.dart
+├── emergency_screen.dart
+├── profile_screen.dart
+├── topic_detail_screen.dart
+├── models/
+│ └── first_aid_topic.dart
+├── data/
+│ └── topics.json
+└── widgets/
+└── topic_card.dart
+--- 
 ## Firebase Configuration
 To use Firebase in your app:
 
